@@ -41,6 +41,5 @@ char** split_line(char*line) {
 
 int main()
 {
-    char* line = takeinput();
-    printf("%s", line);
+    
 }
