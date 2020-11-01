@@ -131,7 +131,7 @@ void shell_loop() {
     do {
         line = takeinput();
         remove_space(line);
-        if (line[0] == "\0")
+        if (line[0] == '\0')
             continue;
         if (strcmp(line, "!!") == 0) {
             if (history == NULL) {
