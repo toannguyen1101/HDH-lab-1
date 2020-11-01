@@ -1,3 +1,4 @@
+
 #define _CRT_SECURE_NO_WARNINGS
 #include<stdio.h>
 #include<string.h>
@@ -69,13 +70,17 @@ void execArg(char **args) {
 void shell_loop() {
     char* line;
     char** args;
+    int status=1;
     do {
         line = takeinput();
         args = split_line(line);
+        if (strcmp(args[0], "exit")==0)
+            break;
         execArg(args);
+         
         free(args);
         free(line);
-    } while (strcmp(args[0], "exit") != 0);
+    } while (status);
 }
 
 int main()
