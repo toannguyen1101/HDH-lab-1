@@ -41,7 +41,7 @@ int ampersand(char** args) {
 
 char* takeinput() {
     char* line = NULL;
-    int size = 0;
+    size_t size = 0;
     printf("T_Shell>> ");
    
     getline(&line, &size, stdin);
