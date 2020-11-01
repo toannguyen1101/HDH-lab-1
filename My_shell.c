@@ -9,6 +9,20 @@
 #include<fcntl.h>
 #include<time.h>
 
+char* history=NULL;
+
+void remove_space(char *line) {
+    int begin = 0;
+    int end = strlen(line) - 1;
+    while (line[begin] == ' '&& begin<end)
+        begin++;
+    while (line[end] == ' '&&begin <end)
+        end--;
+    for (int i = begin;i <= end;i++)
+        line[i - begin] = line[i];
+    line[end - begin+1] = '\0';
+}
+
 int args_len(char** args) {
     int num = 0;
     while (args[num] != NULL)
@@ -44,8 +58,21 @@ char* takeinput() {
     size_t size = 0;
     printf("T_Shell>> ");
    
+    
     getline(&line, &size, stdin);
+    int check = strlen(line);
+    if (line[check - 1] == '\n')
+    {
+        line[check - 1] = '\0';
+    }
+    if (strcmp(line, "!!") != 0 && line[0] != '\0')
+    {
+        if (history != NULL) 
+            free(history);
+        history = (char*)malloc(strlen(line) + 1);
+        strcpy(history, line);
 
+    }
     return line;
 }
 #define _delim " \t\r\n\a"
@@ -58,6 +85,7 @@ char** split_line(char*line) {
 
     token = strtok(line, _delim);
     while (token != NULL) {
+       
         tokens[pos] = token;
         pos++;
 
@@ -102,11 +130,24 @@ void shell_loop() {
     int status=1;
     do {
         line = takeinput();
+        remove_space(line);
+        if (line[0] == "\0")
+            continue;
+        if (strcmp(line, "!!") == 0) {
+            if (history == NULL) {
+                printf("No history\n");
+                continue;
+            }
+            else
+                strcpy(line, history);
+        }
         args = split_line(line);
+
+        
         if (strcmp(args[0], "exit")==0)
             break;
         execArg(args);
-       
+        
         free(args);
         free(line);
     } while (status);
