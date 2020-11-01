@@ -1,4 +1,3 @@
-
 #define _CRT_SECURE_NO_WARNINGS
 #include<stdio.h>
 #include<string.h>
@@ -9,6 +8,36 @@
 #include<sys/stat.h>
 #include<fcntl.h>
 #include<time.h>
+
+int args_len(char** args) {
+    int num = 0;
+    while (args[num] != NULL)
+        num++;
+    return num;
+}
+
+int ampersand(char** args) {
+
+    int check = 0;
+    int n = args_len(args);
+    if (strcmp(args[n - 1], "&") == 0)
+    {
+        check = 1;
+        args[n - 1] = NULL; //xoa dau & vi shell khong hieu
+    }
+    else // lo nguoi dung nhap dinh lien, vd ls&
+    {
+        int len = strlen(args[n - 1]);
+        char temp = args[n - 1][len - 1];
+        if (temp == '&')
+        {
+            check = 1;
+            args[n - 1][len-1]='\0';
+        }
+    }
+
+    return check;
+}
 
 char* takeinput() {
     char* line = NULL;
@@ -46,7 +75,7 @@ char** split_line(char*line) {
 
 void execArg(char **args) {
     pid_t pid, wpid;
-
+    int amber_founded = ampersand(args);
     pid = fork();
     if (pid == 0) {
         // Child process
@@ -59,7 +88,7 @@ void execArg(char **args) {
         perror("Error forking");
         exit(EXIT_FAILURE);
     }
-    else {
+    else if(amber_founded!=1) {
         // Parent process
         waitpid(pid, NULL, 0);
     }
@@ -77,7 +106,7 @@ void shell_loop() {
         if (strcmp(args[0], "exit")==0)
             break;
         execArg(args);
-         
+       
         free(args);
         free(line);
     } while (status);
