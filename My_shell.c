@@ -76,6 +76,33 @@ char* takeinput() {
     return line;
 }
 #define _delim " \t\r\n\a"
+
+int is_type(char*line)
+{
+    for (int i = 0;i < strlen(line);i++) {
+        if (line[i] == '|')
+            return 2;
+        else if (line[i] == '>')
+            return 3;
+        else if (line[i] == '<')
+            return 4;
+    }
+    return 1;
+}
+
+char** parse_pipe(char* line) {
+   
+    size_t size = 2;
+    char** args = (char**)malloc(size * sizeof(char*));
+
+    for (int i = 0;i < 2;i++) {
+        args[i] = strsep(&line, "|<>");
+        if (args[i] == NULL)
+            break;
+    }
+   
+    return args;
+}
 char** split_line(char*line) {
     
     int size = 64;
@@ -124,9 +151,74 @@ void execArg(char **args) {
     return;
 }
 
+void exec_OR(char **command,char **file){}
+void exec_IR(char** command, char** file) {}
+void exec_pipe(char**args,char**argspipe) {
+    // 0 is read end, 1 is write end 
+    int pipefd[2];
+    pid_t p1, p2;
+
+    if (pipe(pipefd) < 0) {
+        printf("\nPipe could not be initialized");
+        return;
+    }
+    p1 = fork();
+    if (p1 < 0) {
+        printf("\nCould not fork");
+        return;
+    }
+
+    if (p1 == 0) {
+        // Child 1 executing.. 
+        // It only needs to write at the write end 
+        close(pipefd[0]);
+        dup2(pipefd[1], STDOUT_FILENO);
+        close(pipefd[1]);
+
+        if (execvp(args[0], args) < 0) {
+            printf("\nCould not execute command 1..");
+            exit(0);
+        }
+    }
+    else {
+        // Parent executing 
+        p2 = fork();
+
+        if (p2 < 0) {
+            printf("\nCould not fork");
+            return;
+        }
+
+        // Child 2 executing.. 
+        // It only needs to read at the read end 
+        if (p2 == 0) {
+            close(pipefd[1]);
+            dup2(pipefd[0], STDIN_FILENO);
+            close(pipefd[0]);
+            if (execvp(argspipe[0], argspipe) < 0) {
+                printf("\nCould not execute command 2..");
+                exit(0);
+            }
+        }
+        else {
+            // parent executing, waiting for two children 
+            waitpid(p1, NULL, 0);
+            waitpid(p2, NULL, 0);
+        }
+    }
+}
+
+void process_string(char* line, char**args,char**argspipe,int type) {
+    
+    
+    return;
+
+}
+
 void shell_loop() {
     char* line;
     char** args;
+    char** argspipe;
     int status=1;
     do {
         line = takeinput();
@@ -141,17 +233,48 @@ void shell_loop() {
             else
                 strcpy(line, history);
         }
-        args = split_line(line);
-
         
-        if (strcmp(args[0], "exit")==0)
+        //Process_string and take type of command.
+        int type = is_type(line);
+        char** temp;
+        if (type == 1)
+            args = split_line(line);
+        else {
+            temp = parse_pipe(line);
+            args = split_line(temp[0]);
+            argspipe = split_line(temp[1]);
+        }
+        //If exit, end the shell.
+        if (strcmp(args[0], "exit") == 0)
             break;
-        execArg(args);
+
+        //Process command
+        switch (type)
+        {
+        case 1:
+            execArg(args);//Simple command
+            break;
+        case 2:
+            exec_pipe(args, argspipe);//Pipe
+            break;
+        case 3:
+            exec_OR(args, argspipe);//Input redirection
+            break;
+        case 4:
+            exec_IR(args, argspipe);//Output redirection
+            break;
+        default:
+            break;
+        }
         
+        if (type != 1)
+            free(argspipe);
         free(args);
         free(line);
     } while (status);
 }
+
+
 
 int main()
 {
