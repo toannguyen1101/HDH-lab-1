@@ -8,6 +8,7 @@
 #include<sys/stat.h>
 #include<fcntl.h>
 
+
 char* history=NULL;
 
 char* remove_space(char *line) {
@@ -37,9 +38,9 @@ int ampersand(char** args) {
     if (strcmp(args[n - 1], "&") == 0)
     {
         check = 1;
-        args[n - 1] = NULL; //xoa dau & vi shell khong hieu
+        args[n - 1] = NULL; 
     }
-    else // lo nguoi dung nhap dinh lien, vd ls&
+    else 
     {
         int len = strlen(args[n - 1]);
         char temp = args[n - 1][len - 1];
@@ -198,7 +199,7 @@ void exec_IR(char** command, char** filename) {
         }
         if (dup2(fd, STDIN_FILENO) < 0)
         {
-            perror("Dup2 failed\n");
+            perror("Dup2 failed");
             return;
         }
         close(fd);
@@ -283,7 +284,7 @@ void shell_loop() {
             continue;
         if (strcmp(line, "!!") == 0) {
             if (history == NULL) {
-                printf("No commands in history.\n");
+                printf("No commands in history\n");
                 continue;
             }
             else
