@@ -276,7 +276,7 @@ void shell_loop() {
     char* line;
     char** args=NULL;
     char** argspipe=NULL;
-    int status=1;
+    
     do {
         line = takeinput();
         line = remove_space(line);
@@ -328,7 +328,7 @@ void shell_loop() {
             free(argspipe);
         free(args);
         free(line);
-    } while (status);
+    } while (TRUE);
 }
 
 
