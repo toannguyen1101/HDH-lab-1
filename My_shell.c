@@ -11,7 +11,7 @@
 
 char* history=NULL;
 
-void remove_space(char *line) {
+char* remove_space(char *line) {
     int begin = 0;
     int end = strlen(line) - 1;
     while (line[begin] == ' '&& begin<end)
@@ -21,6 +21,7 @@ void remove_space(char *line) {
     for (int i = begin;i <= end;i++)
         line[i - begin] = line[i];
     line[end - begin+1] = '\0';
+    return line;
 }
 
 int args_len(char** args) {
@@ -129,13 +130,16 @@ char** split_line(char*line) {
 }
 
 void execArg(char **args) {
-    pid_t pid, wpid;
+    
     int amber_founded = ampersand(args);
+    
+    pid_t pid, wpid;
     pid = fork();
+    
     if (pid == 0) {
         // Child process
         if (execvp(args[0], args) == -1) {
-            perror("exevcp failed\n");
+            perror("Exevcp failed\n");
         }
         exit(EXIT_FAILURE);
     }
@@ -151,24 +155,83 @@ void execArg(char **args) {
     return;
 }
 
-void exec_OR(char **command,char **file){}
-void exec_IR(char** command, char** file) {}
+void exec_OR(char **command,char **filename){
+    
+    pid_t pid = fork();
+    
+    if (pid == 0)
+    {
+        int fd = open(filename[0], O_CREAT | O_WRONLY, 0666);
+        if (fd < 0)
+        {
+            perror("Open error\n");
+            return;
+        }
+        if (dup2(fd, STDOUT_FILENO) < 0)
+        {
+            perror("dup2 error\n");
+            return;
+        }
+        close(fd);
+        execvp(command[0], command);
+        perror("execvp failed\n");
+        exit(EXIT_FAILURE);
+    }
+    else if (pid < 0)
+    {
+        perror("Fork failed\n");
+        return;
+    }
+    else 
+        waitpid(pid, NULL, 0);
+}
+void exec_IR(char** command, char** filename) {
+    
+    pid_t pid = fork();
+  
+    if (pid == 0)
+    {
+        int fd = open(filename[0], O_RDONLY, 0666);
+        if (fd < 0)
+        {
+            perror("open failed\n");
+            return;
+        }
+        if (dup2(fd, STDIN_FILENO) < 0)
+        {
+            perror("dup2 failed");
+            return;
+        }
+        close(fd);
+        execvp(command[0], command);
+        perror("execvp failed\n");
+        exit(EXIT_FAILURE);
+    }
+    else if (pid < 0)
+    {
+        perror("fork failed\n");
+        return;
+    }
+    else
+        waitpid(pid, NULL, 0);
+
+}
 void exec_pipe(char**args,char**argspipe) {
     // 0 is read end, 1 is write end 
     int pipefd[2];
-    pid_t p1, p2;
+    pid_t pid1, pid2;
 
     if (pipe(pipefd) < 0) {
-        printf("\nPipe could not be initialized\n");
+        printf("Pipe could not be initialized\n");
         return;
     }
-    p1 = fork();
-    if (p1 < 0) {
-        printf("\nCould not fork");
+    pid1 = fork();
+    if (pid1 < 0) {
+        printf("Could not fork\n");
         return;
     }
 
-    if (p1 == 0) {
+    if (pid1 == 0) {
         // Child 1 executing.. 
         // It only needs to write at the write end 
         close(pipefd[0]);
@@ -176,34 +239,34 @@ void exec_pipe(char**args,char**argspipe) {
         close(pipefd[1]);
 
         if (execvp(args[0], args) < 0) {
-            printf("\nCould not execute command 1..\n");
-            exit(0);
+            printf("Could not execute command 1..\n");
+            exit(EXIT_FAILURE);
         }
     }
     else {
         // Parent executing 
-        p2 = fork();
+        pid2 = fork();
 
-        if (p2 < 0) {
+        if (pid2 < 0) {
             printf("\nCould not fork");
             return;
         }
 
         // Child 2 executing.. 
         // It only needs to read at the read end 
-        if (p2 == 0) {
+        if (pid2 == 0) {
             close(pipefd[1]);
             dup2(pipefd[0], STDIN_FILENO);
             close(pipefd[0]);
             if (execvp(argspipe[0], argspipe) < 0) {
-                printf("\nCould not execute command 2..\n");
-                exit(0);
+                printf("Could not execute command 2..\n");
+                exit(EXIT_FAILURE);
             }
         }
         else {
             // parent executing, waiting for two children 
-            waitpid(p1, NULL, 0);
-            waitpid(p2, NULL, 0);
+            waitpid(pid1, NULL, 0);
+            waitpid(pid2, NULL, 0);
         }
     }
 }
@@ -211,8 +274,8 @@ void exec_pipe(char**args,char**argspipe) {
 
 void shell_loop() {
     char* line;
-    char** args;
-    char** argspipe;
+    char** args=NULL;
+    char** argspipe=NULL;
     int status=1;
     do {
         line = takeinput();
@@ -221,7 +284,7 @@ void shell_loop() {
             continue;
         if (strcmp(line, "!!") == 0) {
             if (history == NULL) {
-                printf("No history\n");
+                printf("No commands in history\n");
                 continue;
             }
             else
@@ -261,7 +324,7 @@ void shell_loop() {
             break;
         }
         
-        if (type != 1)
+        if(type!=1)
             free(argspipe);
         free(args);
         free(line);
