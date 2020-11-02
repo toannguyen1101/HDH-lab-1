@@ -208,12 +208,6 @@ void exec_pipe(char**args,char**argspipe) {
     }
 }
 
-void process_string(char* line, char**args,char**argspipe,int type) {
-    
-    
-    return;
-
-}
 
 void shell_loop() {
     char* line;
