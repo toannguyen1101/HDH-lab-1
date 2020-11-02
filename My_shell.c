@@ -7,7 +7,6 @@
 #include<sys/wait.h>
 #include<sys/stat.h>
 #include<fcntl.h>
-#include<time.h>
 
 char* history=NULL;
 
@@ -169,12 +168,12 @@ void exec_OR(char **command,char **filename){
         }
         if (dup2(fd, STDOUT_FILENO) < 0)
         {
-            perror("dup2 error\n");
+            perror("Dup2 error\n");
             return;
         }
         close(fd);
         execvp(command[0], command);
-        perror("execvp failed\n");
+        perror("Execvp failed\n");
         exit(EXIT_FAILURE);
     }
     else if (pid < 0)
@@ -194,22 +193,22 @@ void exec_IR(char** command, char** filename) {
         int fd = open(filename[0], O_RDONLY, 0666);
         if (fd < 0)
         {
-            perror("open failed\n");
+            perror("Open failed\n");
             return;
         }
         if (dup2(fd, STDIN_FILENO) < 0)
         {
-            perror("dup2 failed");
+            perror("Dup2 failed");
             return;
         }
         close(fd);
         execvp(command[0], command);
-        perror("execvp failed\n");
+        perror("Execvp failed\n");
         exit(EXIT_FAILURE);
     }
     else if (pid < 0)
     {
-        perror("fork failed\n");
+        perror("Fork failed\n");
         return;
     }
     else
@@ -284,7 +283,7 @@ void shell_loop() {
             continue;
         if (strcmp(line, "!!") == 0) {
             if (history == NULL) {
-                printf("No commands in history\n");
+                printf("No commands in history.\n");
                 continue;
             }
             else
