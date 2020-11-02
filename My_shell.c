@@ -135,12 +135,12 @@ void execArg(char **args) {
     if (pid == 0) {
         // Child process
         if (execvp(args[0], args) == -1) {
-            perror("exevcp failed");
+            perror("exevcp failed\n");
         }
         exit(EXIT_FAILURE);
     }
     else if (pid < 0) {
-        perror("Error forking");
+        perror("Error forking\n");
         exit(EXIT_FAILURE);
     }
     else if(amber_founded!=1) {
@@ -159,7 +159,7 @@ void exec_pipe(char**args,char**argspipe) {
     pid_t p1, p2;
 
     if (pipe(pipefd) < 0) {
-        printf("\nPipe could not be initialized");
+        printf("\nPipe could not be initialized\n");
         return;
     }
     p1 = fork();
@@ -176,7 +176,7 @@ void exec_pipe(char**args,char**argspipe) {
         close(pipefd[1]);
 
         if (execvp(args[0], args) < 0) {
-            printf("\nCould not execute command 1..");
+            printf("\nCould not execute command 1..\n");
             exit(0);
         }
     }
@@ -196,7 +196,7 @@ void exec_pipe(char**args,char**argspipe) {
             dup2(pipefd[0], STDIN_FILENO);
             close(pipefd[0]);
             if (execvp(argspipe[0], argspipe) < 0) {
-                printf("\nCould not execute command 2..");
+                printf("\nCould not execute command 2..\n");
                 exit(0);
             }
         }
