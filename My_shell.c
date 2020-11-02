@@ -139,12 +139,12 @@ void execArg(char **args) {
     if (pid == 0) {
         // Child process
         if (execvp(args[0], args) == -1) {
-            perror("Exevcp failed\n");
+            perror("Exevcp failed ");
         }
         exit(EXIT_FAILURE);
     }
     else if (pid < 0) {
-        perror("Error forking\n");
+        perror("Forking failed");
         exit(EXIT_FAILURE);
     }
     else if(amber_founded!=1) {
@@ -164,22 +164,22 @@ void exec_OR(char **command,char **filename){
         int fd = open(filename[0], O_CREAT | O_WRONLY, 0666);
         if (fd < 0)
         {
-            perror("Open error\n");
+            perror("Open failed");
             return;
         }
         if (dup2(fd, STDOUT_FILENO) < 0)
         {
-            perror("Dup2 error\n");
+            perror("Dup2 failed");
             return;
         }
         close(fd);
         execvp(command[0], command);
-        perror("Execvp failed\n");
+        perror("Execvp failed");
         exit(EXIT_FAILURE);
     }
     else if (pid < 0)
     {
-        perror("Fork failed\n");
+        perror("Fork failed");
         return;
     }
     else 
@@ -194,7 +194,7 @@ void exec_IR(char** command, char** filename) {
         int fd = open(filename[0], O_RDONLY, 0666);
         if (fd < 0)
         {
-            perror("Open failed\n");
+            perror("Open failed");
             return;
         }
         if (dup2(fd, STDIN_FILENO) < 0)
@@ -204,12 +204,12 @@ void exec_IR(char** command, char** filename) {
         }
         close(fd);
         execvp(command[0], command);
-        perror("Execvp failed\n");
+        perror("Execvp failed");
         exit(EXIT_FAILURE);
     }
     else if (pid < 0)
     {
-        perror("Fork failed\n");
+        perror("Fork failed");
         return;
     }
     else
@@ -222,12 +222,12 @@ void exec_pipe(char**args,char**argspipe) {
     pid_t pid1, pid2;
 
     if (pipe(pipefd) < 0) {
-        printf("Pipe could not be initialized\n");
+        printf("Pipe failed\n");
         return;
     }
     pid1 = fork();
     if (pid1 < 0) {
-        printf("Could not fork\n");
+        printf("Fork 1 failed\n");
         return;
     }
 
@@ -239,7 +239,7 @@ void exec_pipe(char**args,char**argspipe) {
         close(pipefd[1]);
 
         if (execvp(args[0], args) < 0) {
-            printf("Could not execute command 1..\n");
+            printf("Exevcp 1 failed");
             exit(EXIT_FAILURE);
         }
     }
@@ -248,7 +248,7 @@ void exec_pipe(char**args,char**argspipe) {
         pid2 = fork();
 
         if (pid2 < 0) {
-            printf("\nCould not fork");
+            printf("Fork 2 failed");
             return;
         }
 
@@ -259,7 +259,7 @@ void exec_pipe(char**args,char**argspipe) {
             dup2(pipefd[0], STDIN_FILENO);
             close(pipefd[0]);
             if (execvp(argspipe[0], argspipe) < 0) {
-                printf("Could not execute command 2..\n");
+                printf("Exevcp 2 failed");
                 exit(EXIT_FAILURE);
             }
         }
