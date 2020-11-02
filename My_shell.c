@@ -198,7 +198,7 @@ void exec_IR(char** command, char** filename) {
         }
         if (dup2(fd, STDIN_FILENO) < 0)
         {
-            perror("Dup2 failed");
+            perror("Dup2 failed\n");
             return;
         }
         close(fd);
@@ -278,7 +278,7 @@ void shell_loop() {
     int status=1;
     do {
         line = takeinput();
-        remove_space(line);
+        line = remove_space(line);
         if (line[0] == '\0')
             continue;
         if (strcmp(line, "!!") == 0) {
