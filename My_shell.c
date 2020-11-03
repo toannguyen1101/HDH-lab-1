@@ -227,7 +227,7 @@ void exec_IR(char** command, char** filename) {
 }
 // Xu li pipe
 void exec_pipe(char**args,char**argspipe) {
-    // 0 is read end, 1 is write end 
+     
     int pipefd[2];
     pid_t pid1, pid2;
 
@@ -242,8 +242,7 @@ void exec_pipe(char**args,char**argspipe) {
     }
 
     if (pid1 == 0) {
-        // Child 1 executing.. 
-        // It only needs to write at the write end 
+ 
         close(pipefd[0]);
         dup2(pipefd[1], STDOUT_FILENO);
         close(pipefd[1]);
@@ -254,7 +253,6 @@ void exec_pipe(char**args,char**argspipe) {
         }
     }
     else {
-        // Parent executing 
         pid2 = fork();
 
         if (pid2 < 0) {
@@ -262,8 +260,6 @@ void exec_pipe(char**args,char**argspipe) {
             return;
         }
 
-        // Child 2 executing.. 
-        // It only needs to read at the read end 
         if (pid2 == 0) {
             close(pipefd[1]);
             dup2(pipefd[0], STDIN_FILENO);
@@ -274,7 +270,6 @@ void exec_pipe(char**args,char**argspipe) {
             }
         }
         else {
-            // parent executing, waiting for two children 
             waitpid(pid1, NULL, 0);
             waitpid(pid2, NULL, 0);
         }
