@@ -7,30 +7,35 @@
 #include<sys/wait.h>
 #include<sys/stat.h>
 #include<fcntl.h>
-
+#define _delim " \t\r\n\a"
 
 char* history=NULL;
 
+// Xoa khoang trang du khi nhap du lieu
 char* remove_space(char *line) {
     int begin = 0;
     int end = strlen(line) - 1;
+    
     while (line[begin] == ' '&& begin<end)
         begin++;
     while (line[end] == ' '&&begin <end)
         end--;
+   
     for (int i = begin;i <= end;i++)
         line[i - begin] = line[i];
+    
     line[end - begin+1] = '\0';
+   
     return line;
 }
-
+// Do dai cua mang Args
 int args_len(char** args) {
     int num = 0;
     while (args[num] != NULL)
         num++;
     return num;
 }
-
+// Tim dau & trong mang Args
 int ampersand(char** args) {
 
     int check = 0;
@@ -53,31 +58,31 @@ int ampersand(char** args) {
 
     return check;
 }
-
+// Nhap lenh
 char* takeinput() {
+    
     char* line = NULL;
     size_t size = 0;
     printf("T_Shell>> ");
-   
     
     getline(&line, &size, stdin);
     int check = strlen(line);
+
     if (line[check - 1] == '\n')
     {
         line[check - 1] = '\0';
     }
+    //Tao history cho cau lenh
     if (strcmp(line, "!!") != 0 && line[0] != '\0')
     {
         if (history != NULL) 
             free(history);
         history = (char*)malloc(strlen(line) + 1);
         strcpy(history, line);
-
     }
     return line;
 }
-#define _delim " \t\r\n\a"
-
+// Tra ve loai cau lenh nhap vao
 int is_type(char*line)
 {
     for (int i = 0;i < strlen(line);i++) {
@@ -91,6 +96,7 @@ int is_type(char*line)
     return 1;
 }
 
+//Xu ly neu lenh nhap vao la pipe, ouput va input redirection.
 char** parse_pipe(char* line) {
    
     size_t size = 2;
@@ -104,6 +110,7 @@ char** parse_pipe(char* line) {
    
     return args;
 }
+// Xu ly neu lenh nhap vao la lenh co ban
 char** split_line(char*line) {
     
     int size = 64;
@@ -129,6 +136,7 @@ char** split_line(char*line) {
     return tokens;
 }
 
+// Xu li lenh co ban
 void execArg(char **args) {
     
     int amber_founded = ampersand(args);
@@ -154,7 +162,7 @@ void execArg(char **args) {
 
     return;
 }
-
+// Xu li output redirection
 void exec_OR(char **command,char **filename){
     
     pid_t pid = fork();
@@ -185,6 +193,7 @@ void exec_OR(char **command,char **filename){
     else 
         waitpid(pid, NULL, 0);
 }
+// Xu li input redirection
 void exec_IR(char** command, char** filename) {
     
     pid_t pid = fork();
@@ -216,6 +225,7 @@ void exec_IR(char** command, char** filename) {
         waitpid(pid, NULL, 0);
 
 }
+// Xu li pipe
 void exec_pipe(char**args,char**argspipe) {
     // 0 is read end, 1 is write end 
     int pipefd[2];
@@ -273,15 +283,19 @@ void exec_pipe(char**args,char**argspipe) {
 
 
 void shell_loop() {
+    
     char* line;
     char** args=NULL;
     char** argspipe=NULL;
-    
+  
     do {
         line = takeinput();
         line = remove_space(line);
+       
         if (line[0] == '\0')
             continue;
+       
+        //Xu li khi nhap vao lenh "!!"
         if (strcmp(line, "!!") == 0) {
             if (history == NULL) {
                 printf("No commands in history\n");
@@ -291,7 +305,7 @@ void shell_loop() {
                 strcpy(line, history);
         }
         
-        //Process_string and take type of command.
+        //Xu li chuoi 
         int type = is_type(line);
         char** temp;
         if (type == 1)
@@ -301,11 +315,11 @@ void shell_loop() {
             args = split_line(temp[0]);
             argspipe = split_line(temp[1]);
         }
-        //If exit, end the shell.
+        //Neu lenh "exit", thoat vong lap.
         if (strcmp(args[0], "exit") == 0)
             break;
 
-        //Process command
+        //Thuc thi lenh
         switch (type)
         {
         case 1:
@@ -328,10 +342,8 @@ void shell_loop() {
             free(argspipe);
         free(args);
         free(line);
-    } while (TRUE);
+    } while (1);
 }
-
-
 
 int main()
 {
