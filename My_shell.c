@@ -244,7 +244,6 @@ void exec_pipe(char**args,char**argspipe) {
         return;
     }
     
-    
     pid1 = fork();
     if (pid1 < 0) {
         printf("Fork 1 failed\n");
@@ -264,10 +263,8 @@ void exec_pipe(char**args,char**argspipe) {
         }
     }
     else {
-
-      
+        
         pid2 = fork();
-
         
         if (pid2 < 0) {
             printf("Fork 2 failed");
