@@ -139,13 +139,14 @@ char** split_line(char*line) {
 // Xu li lenh co ban
 void execArg(char **args) {
     
+    //Kiem tra co dau & khong
     int amber_founded = ampersand(args);
     
     pid_t pid, wpid;
     pid = fork();
     
     if (pid == 0) {
-        // Child process
+        // Tien trinh con xu ly
         if (execvp(args[0], args) == -1) {
             perror("Exevcp failed ");
         }
@@ -156,7 +157,7 @@ void execArg(char **args) {
         exit(EXIT_FAILURE);
     }
     else if(amber_founded!=1) {
-        // Parent process
+        // Tien trinh cha xu ly
         waitpid(pid, NULL, 0);
     }
 
@@ -169,6 +170,7 @@ void exec_OR(char **command,char **filename){
     
     if (pid == 0)
     {
+        //Mo file
         int fd = open(filename[0], O_CREAT | O_WRONLY, 0666);
         if (fd < 0)
         {
@@ -181,6 +183,8 @@ void exec_OR(char **command,char **filename){
             return;
         }
         close(fd);
+
+        // Tien trinh con xu ly
         execvp(command[0], command);
         perror("Execvp failed");
         exit(EXIT_FAILURE);
@@ -191,6 +195,7 @@ void exec_OR(char **command,char **filename){
         return;
     }
     else 
+        // Tien trinh cha xu ly
         waitpid(pid, NULL, 0);
 }
 // Xu li input redirection
@@ -200,6 +205,7 @@ void exec_IR(char** command, char** filename) {
   
     if (pid == 0)
     {
+        //Mo file 
         int fd = open(filename[0], O_RDONLY, 0666);
         if (fd < 0)
         {
@@ -212,6 +218,8 @@ void exec_IR(char** command, char** filename) {
             return;
         }
         close(fd);
+
+        // Tien trinh con xu ly
         execvp(command[0], command);
         perror("Execvp failed");
         exit(EXIT_FAILURE);
@@ -222,6 +230,7 @@ void exec_IR(char** command, char** filename) {
         return;
     }
     else
+        // Tien trinh cha xu ly
         waitpid(pid, NULL, 0);
 
 }
@@ -235,12 +244,15 @@ void exec_pipe(char**args,char**argspipe) {
         printf("Pipe failed\n");
         return;
     }
+    
+    
     pid1 = fork();
     if (pid1 < 0) {
         printf("Fork 1 failed\n");
         return;
     }
 
+    //Tien trinh con 1 xu ly
     if (pid1 == 0) {
  
         close(pipefd[0]);
@@ -253,30 +265,36 @@ void exec_pipe(char**args,char**argspipe) {
         }
     }
     else {
+
+      
         pid2 = fork();
 
+        
         if (pid2 < 0) {
             printf("Fork 2 failed");
             return;
         }
 
+        //Tien trinh con 2 xu ly
         if (pid2 == 0) {
             close(pipefd[1]);
             dup2(pipefd[0], STDIN_FILENO);
             close(pipefd[0]);
+            
             if (execvp(argspipe[0], argspipe) < 0) {
                 printf("Exevcp 2 failed");
                 exit(EXIT_FAILURE);
             }
         }
         else {
+            //Tien trinh cha xu ly
             waitpid(pid1, NULL, 0);
             waitpid(pid2, NULL, 0);
         }
     }
 }
 
-
+//Xu ly shell
 void shell_loop() {
     
     char* line;
