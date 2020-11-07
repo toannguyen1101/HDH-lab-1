@@ -263,9 +263,9 @@ void exec_pipe(char**args,char**argspipe) {
         }
     }
     else {
-        
+
         pid2 = fork();
-        
+
         if (pid2 < 0) {
             printf("Fork 2 failed");
             return;
